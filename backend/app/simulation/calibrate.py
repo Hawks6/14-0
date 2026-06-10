@@ -13,17 +13,7 @@ class DummyPlayer:
         self.percentile_batting = percentile_batting
         self.percentile_bowling = percentile_bowling
 
-class SafeInningsSimulator(InningsSimulator):
-    """
-    Subclass of InningsSimulator that safely zeros out index 5
-    (which is not a valid MatchOutcome) before sampling.
-    """
-    def _sample_outcome(self, probs: np.ndarray) -> int:
-        probs = probs.copy()
-        if len(probs) > 5:
-            probs[5] = 0.0
-            probs = probs / np.sum(probs)
-        return super()._sample_outcome(probs)
+
 
 def get_calibrated_lineup() -> List[DummyPlayer]:
     """
@@ -58,7 +48,7 @@ def run_calibration(runs: int):
         MomentumModifier(),
         BowlingPressureModifier()
     ]
-    sim = SafeInningsSimulator(seed=123, modifiers=modifiers)
+    sim = InningsSimulator(seed=123, modifiers=modifiers)
     
     scores = []
     wickets = []
