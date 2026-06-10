@@ -7,7 +7,7 @@ This roadmap defines the implementation path for the 14-0 IPL Draft & Simulation
 ## Phases
 
 - [x] **Phase 1: Data Model & Ingestion Engine** - Create the PostgreSQL database schema and ingestion parser for normalized player ratings.
-- [ ] **Phase 2: Core Simulation & Probability Engine** - Implement the Markov chain delivery outcome simulator and calibrate outcomes.
+- [x] **Phase 2: Core Simulation & Probability Engine** - Implement the Markov chain delivery outcome simulator and calibrate outcomes.
 - [ ] **Phase 3: Draft Engine & Constraint Solver** - Build the spin selection pools and draft optimizer using PuLP.
 - [ ] **Phase 4: Match Orchestrator & Season State** - Set up the 14-match schedule progression and event-sourced logging.
 - [ ] **Phase 5: Advanced Cricket Rules** - Layer on IPL rules including the Impact Player rule and DLS stochastic weather calculations.
@@ -43,7 +43,7 @@ Plans:
 Plans:
 - [x] 02-01: Markov chain state machine and delivery resolver
 - [x] 02-02: Contextual modifiers and momentum Strategy pattern implementation
-- [ ] 02-03: Statistical verification test suite and calibration
+- [x] 02-03: Statistical verification test suite and calibration
 
 ### Phase 3: Draft Engine & Constraint Solver
 **Goal**: Implement the randomized spin generation and the ILP-based roster builder.
@@ -112,7 +112,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Data Model & Ingestion Engine | 3/3 | Complete    | 2026-06-10 |
-| 2. Core Simulation & Probability Engine | 1/3 | In progress | - |
+| 2. Core Simulation & Probability Engine | 3/3 | Complete    | 2026-06-11 |
 | 3. Draft Engine & Constraint Solver | 0/2 | Not started | - |
 | 4. Match Orchestrator & Season State | 0/3 | Not started | - |
 | 5. Advanced Cricket Rules | 0/3 | Not started | - |
