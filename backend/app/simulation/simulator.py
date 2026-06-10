@@ -1,6 +1,7 @@
 import numpy as np
 from typing import List, Dict, Any, Optional
 from app.simulation.models import MatchOutcome, MatchState, InningsResult, synthesize_base_matchup
+from app.simulation.modifiers import SimulationModifier
 
 def get_player_id(player) -> Any:
     val = getattr(player, "id", None)
@@ -45,8 +46,9 @@ def get_bowling_percentile(player) -> int:
     return 50
 
 class InningsSimulator:
-    def __init__(self, seed: Optional[int] = None):
+    def __init__(self, seed: Optional[int] = None, modifiers: Optional[List[SimulationModifier]] = None):
         self.rng = np.random.default_rng(seed)
+        self.modifiers = modifiers if modifiers is not None else []
 
     def _select_bowler(
         self,
@@ -124,8 +126,17 @@ class InningsSimulator:
                 get_player_role(striker)
             )
             
+            # Apply modifiers sequentially
+            probs = base_probs.copy()
+            for modifier in self.modifiers:
+                probs = modifier.apply(state, probs)
+            
+            # Normalize and clip final probabilities
+            probs = np.clip(probs, a_min=1e-7, a_max=None)
+            probs = probs / np.sum(probs)
+            
             # Resolve delivery outcome
-            outcome_val = self._sample_outcome(base_probs)
+            outcome_val = self._sample_outcome(probs)
             outcome = MatchOutcome(outcome_val)
             
             is_legal_ball = True
@@ -138,7 +149,7 @@ class InningsSimulator:
                 state.wickets += 1
                 state.last_event_was_wicket = True
                 state.consecutive_dots = 0
-                state.balls_since_boundary += 1
+                state.balls_since_boundary = 10
             elif outcome == MatchOutcome.DOT:
                 state.consecutive_dots += 1
                 state.balls_since_boundary += 1
@@ -194,6 +205,7 @@ class InningsSimulator:
                 state.balls_completed += 1
                 
                 if wicket_fell:
+                    state.balls_since_boundary = 10
                     if state.wickets < 10:
                         striker = batting_lineup[next_batsman_idx]
                         next_batsman_idx += 1
@@ -215,9 +227,11 @@ class InningsSimulator:
                     last_bowler_id = get_player_id(current_bowler)
                     if state.overs_completed < 20 and state.wickets < 10:
                         current_bowler = self._select_bowler(bowlers, overs_bowled_tracker, last_bowler_id)
+                        state.balls_since_boundary = 10
             else:
                 # Non-legal ball, check if wicket fell (e.g. run out)
                 if wicket_fell:
+                    state.balls_since_boundary = 10
                     if state.wickets < 10:
                         striker = batting_lineup[next_batsman_idx]
                         next_batsman_idx += 1
