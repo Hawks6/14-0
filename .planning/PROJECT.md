@@ -12,13 +12,13 @@ The draft-spin-simulate loop must feel addictive and fair — users spin random 
 
 ### Validated
 
-(None yet → ship to validate)
+- **Historical player dataset ingestion** — Parsed and verified CSV/JSON dataset loader (Validated in Phase 1)
+- **PostgreSQL schema** — PostgreSQL database tables designed, mapped via SQLAlchemy, and migrated using Alembic (Validated in Phase 1)
 
 ### Active
 
 - [ ] **Spin mechanic** — Randomly serve a specific Team + Year (e.g., CSK 2021) and display that era's roster for drafting
 - [ ] **Draft engine** — Let users pick one player per spin from the served historical roster, enforcing role constraints (1 WK, min 3 bowlers, max 4 overseas) and a 100-credit hard salary cap
-- [ ] **Historical player dataset ingestion** — Parse CSV/JSON containing Year, Franchise, Player_Name, Role, Base_Rating, and specific attributes (batting avg, strike rate, bowling economy, boundary probability)
 - [ ] **Ball-by-ball simulation engine** — Markov chain model outputting discrete events (0,1,2,3,4,6,Wicket,Extras) per delivery, driven by player ratings
 - [ ] **Contextual modifiers** — Dynamic probability shifts based on current score, wickets lost, and Required Run Rate
 - [ ] **Momentum multiplier** — Clustering logic that suppresses wicket probability for N deliveries after a boundary from a high-variance player
@@ -26,7 +26,6 @@ The draft-spin-simulate loop must feel addictive and fair — users spin random 
 - [ ] **Impact Player rule** — 12th player substitution with batting depth matrix recalculation
 - [ ] **DLS method (stochastic weather)** — Random weather interruptions with Duckworth-Lewis-Stern par score calculations
 - [ ] **Quick play session flow** — Complete spin→draft→simulate loop in ~5 minutes, single session
-- [ ] **PostgreSQL schema** — Tables for Users, Historical_Squads, Draft_Lobbies, Match_Logs
 - [ ] **Mobile-first responsive UI** — React/Next.js frontend optimized for mobile viewport
 - [ ] **Redis caching** — High-frequency draft spin caching and transient match-state management
 
@@ -86,4 +85,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-11 after initialization*
+*Last updated: 2026-06-11 after Phase 1 completion*
