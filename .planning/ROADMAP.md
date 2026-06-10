@@ -26,7 +26,7 @@ This roadmap defines the implementation path for the 14-0 IPL Draft & Simulation
 **Plans**: TBD
 
 Plans:
-- [ ] 01-01: Database schema definition and Alembic configuration
+- [x] 01-01: Database schema definition and Alembic configuration
 - [ ] 01-02: Dataset parser and era-normalization pipelines
 - [ ] 01-03: Base matchup probability pre-computation tests
 
@@ -111,7 +111,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Data Model & Ingestion Engine | 0/3 | Not started | - |
+| 1. Data Model & Ingestion Engine | 1/3 | Executing | - |
 | 2. Core Simulation & Probability Engine | 0/3 | Not started | - |
 | 3. Draft Engine & Constraint Solver | 0/2 | Not started | - |
 | 4. Match Orchestrator & Season State | 0/3 | Not started | - |
