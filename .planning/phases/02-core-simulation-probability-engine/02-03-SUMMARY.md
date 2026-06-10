@@ -46,8 +46,9 @@ tests\test_simulation\test_simulator.py ........                         [100%]
 - **Mean Extras**: 1.28
 - **Four Rate**: 13.30%
 - **Six Rate**: 4.67%
-- **Execution Time**: 24.392 seconds for 10,000 matches (~2.44 ms per match innings, well optimized for massive simulations).
+- **Execution Time**: 8.95 seconds for 10,000 matches (~0.89ms per match innings, optimized down from 24.39s/2.44ms by converting internal delivery loop NumPy computations to plain Python float list operations and caching via `@lru_cache`).
 
 ## Git Commit Log
 All updates were staged and committed atomically via GSD tools:
 - `35d0f74` — Implement simulation calibration and tests
+- `c7eb213` — Optimize calibrate.py to use standard InningsSimulator directly
