@@ -2,6 +2,7 @@ import numpy as np
 from enum import IntEnum
 from dataclasses import dataclass
 from typing import Optional, List, Dict, Any
+from functools import lru_cache
 
 class MatchOutcome(IntEnum):
     DOT = 0
@@ -50,6 +51,7 @@ class InningsResult:
     extras: int
     delivery_log: List[Dict[str, Any]]
 
+@lru_cache(maxsize=1024)
 def synthesize_base_matchup(
     batter_percentile: int,
     bowler_percentile: int,

@@ -1,4 +1,5 @@
 import numpy as np
+import random
 from typing import List, Dict, Any, Optional
 from app.simulation.models import MatchOutcome, MatchState, InningsResult, synthesize_base_matchup
 from app.simulation.modifiers import SimulationModifier
@@ -46,8 +47,11 @@ def get_bowling_percentile(player) -> int:
     return 50
 
 class InningsSimulator:
+    OUTCOMES = list(range(10))
+
     def __init__(self, seed: Optional[int] = None, modifiers: Optional[List[SimulationModifier]] = None):
         self.rng = np.random.default_rng(seed)
+        self.random_inst = random.Random(seed)
         self.modifiers = modifiers if modifiers is not None else []
 
     def _select_bowler(
@@ -77,12 +81,10 @@ class InningsSimulator:
         specialists = [b for b in valid_bowlers if get_player_role(b) == "BOWL"]
         choices = specialists if specialists else valid_bowlers
         
-        idx = self.rng.integers(0, len(choices))
-        return choices[idx]
+        return self.random_inst.choice(choices)
 
-    def _sample_outcome(self, probs: np.ndarray) -> int:
-        outcomes = list(range(len(probs)))
-        return self.rng.choice(outcomes, p=probs)
+    def _sample_outcome(self, probs: List[float]) -> int:
+        return self.random_inst.choices(self.OUTCOMES, weights=probs)[0]
 
     def simulate_innings(
         self,
@@ -127,13 +129,16 @@ class InningsSimulator:
             )
             
             # Apply modifiers sequentially
-            probs = base_probs.copy()
+            probs = base_probs.tolist()
             for modifier in self.modifiers:
                 probs = modifier.apply(state, probs)
+                if isinstance(probs, np.ndarray):
+                    probs = probs.tolist()
             
             # Normalize and clip final probabilities
-            probs = np.clip(probs, a_min=1e-7, a_max=None)
-            probs = probs / np.sum(probs)
+            probs = [max(1e-7, p) if idx != 5 else 0.0 for idx, p in enumerate(probs)]
+            s = sum(probs)
+            probs = [p / s for p in probs]
             
             # Resolve delivery outcome
             outcome_val = self._sample_outcome(probs)
