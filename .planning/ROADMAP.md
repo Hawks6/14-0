@@ -6,7 +6,7 @@ This roadmap defines the implementation path for the 14-0 IPL Draft & Simulation
 
 ## Phases
 
-- [ ] **Phase 1: Data Model & Ingestion Engine** - Create the PostgreSQL database schema and ingestion parser for normalized player ratings.
+- [x] **Phase 1: Data Model & Ingestion Engine** - Create the PostgreSQL database schema and ingestion parser for normalized player ratings.
 - [ ] **Phase 2: Core Simulation & Probability Engine** - Implement the Markov chain delivery outcome simulator and calibrate outcomes.
 - [ ] **Phase 3: Draft Engine & Constraint Solver** - Build the spin selection pools and draft optimizer using PuLP.
 - [ ] **Phase 4: Match Orchestrator & Season State** - Set up the 14-match schedule progression and event-sourced logging.
@@ -28,7 +28,7 @@ This roadmap defines the implementation path for the 14-0 IPL Draft & Simulation
 Plans:
 - [x] 01-01: Database schema definition and Alembic configuration
 - [x] 01-02: Dataset parser and era-normalization pipelines
-- [ ] 01-03: Base matchup probability pre-computation tests
+- [x] 01-03: Base matchup probability pre-computation tests
 
 ### Phase 2: Core Simulation & Probability Engine
 **Goal**: Build a decoupled, high-performance ball-by-ball simulation engine using Markov chain transitions.
@@ -111,7 +111,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Data Model & Ingestion Engine | 2/3 | Executing | - |
+| 1. Data Model & Ingestion Engine | 3/3 | Completed | 2026-06-11 |
 | 2. Core Simulation & Probability Engine | 0/3 | Not started | - |
 | 3. Draft Engine & Constraint Solver | 0/2 | Not started | - |
 | 4. Match Orchestrator & Season State | 0/3 | Not started | - |
