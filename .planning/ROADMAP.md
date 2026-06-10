@@ -41,7 +41,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 02-01: Markov chain state machine and delivery resolver
+- [x] 02-01: Markov chain state machine and delivery resolver
 - [ ] 02-02: Contextual modifiers and momentum Strategy pattern implementation
 - [ ] 02-03: Statistical verification test suite and calibration
 
@@ -112,7 +112,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Data Model & Ingestion Engine | 3/3 | Complete    | 2026-06-10 |
-| 2. Core Simulation & Probability Engine | 0/3 | Not started | - |
+| 2. Core Simulation & Probability Engine | 1/3 | In progress | - |
 | 3. Draft Engine & Constraint Solver | 0/2 | Not started | - |
 | 4. Match Orchestrator & Season State | 0/3 | Not started | - |
 | 5. Advanced Cricket Rules | 0/3 | Not started | - |
