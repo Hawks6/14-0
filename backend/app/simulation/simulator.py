@@ -78,6 +78,10 @@ class InningsSimulator:
         idx = self.rng.integers(0, len(choices))
         return choices[idx]
 
+    def _sample_outcome(self, probs: np.ndarray) -> int:
+        outcomes = list(range(len(probs)))
+        return self.rng.choice(outcomes, p=probs)
+
     def simulate_innings(
         self,
         batting_lineup: List[Any],
@@ -107,7 +111,6 @@ class InningsSimulator:
         current_bowler = self._select_bowler(bowlers, overs_bowled_tracker, last_bowler_id)
         
         delivery_log = []
-        outcomes = list(range(10)) # Matches index of probability vector (size 10)
         
         while state.overs_completed < 20 and state.wickets < 10:
             # Check target before delivery
@@ -122,7 +125,7 @@ class InningsSimulator:
             )
             
             # Resolve delivery outcome
-            outcome_val = self.rng.choice(outcomes, p=base_probs)
+            outcome_val = self._sample_outcome(base_probs)
             outcome = MatchOutcome(outcome_val)
             
             is_legal_ball = True
