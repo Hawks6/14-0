@@ -8,7 +8,7 @@ This roadmap defines the implementation path for the 14-0 IPL Draft & Simulation
 
 - [x] **Phase 1: Data Model & Ingestion Engine** - Create the PostgreSQL database schema and ingestion parser for normalized player ratings.
 - [x] **Phase 2: Core Simulation & Probability Engine** - Implement the Markov chain delivery outcome simulator and calibrate outcomes.
-- [ ] **Phase 3: Draft Engine & Constraint Solver** - Build the spin selection pools and draft optimizer using PuLP.
+- [x] **Phase 3: Draft Engine & Constraint Solver** - Build the spin selection pools and draft optimizer using PuLP.
 - [ ] **Phase 4: Match Orchestrator & Season State** - Set up the 14-match schedule progression and event-sourced logging.
 - [ ] **Phase 5: Advanced Cricket Rules** - Layer on IPL rules including the Impact Player rule and DLS stochastic weather calculations.
 - [ ] **Phase 6: Mobile-First Frontend & Polish** - Create the responsive React interface, spin wheel animations, and scorecard displays.
@@ -56,8 +56,8 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 03-01: Redis draft session storage and spin mechanics
-- [ ] 03-02: PuLP solver integration for constraint check and smart warnings
+- [x] 03-01: Redis draft session storage and spin mechanics
+- [x] 03-02: PuLP solver integration for constraint check and smart warnings
 
 ### Phase 4: Match Orchestrator & Season State
 **Goal**: Combine matches into a cohesive 14-match single-player PvE season.
@@ -113,7 +113,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Data Model & Ingestion Engine | 3/3 | Complete    | 2026-06-10 |
 | 2. Core Simulation & Probability Engine | 3/3 | Complete    | 2026-06-11 |
-| 3. Draft Engine & Constraint Solver | 0/2 | Not started | - |
+| 3. Draft Engine & Constraint Solver | 2/2 | Complete    | 2026-06-11 |
 | 4. Match Orchestrator & Season State | 0/3 | Not started | - |
 | 5. Advanced Cricket Rules | 0/3 | Not started | - |
 | 6. Mobile-First Frontend & Polish | 0/3 | Not started | - |

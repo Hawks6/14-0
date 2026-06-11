@@ -37,4 +37,5 @@ async def test_alembic_migration_applied(db_session):
     """Verify that Alembic migrations have been successfully applied up to the initial schema."""
     result = await db_session.execute(text("SELECT version_num FROM alembic_version"))
     version = result.scalar()
-    assert version == "9fcd2f7f1839"
+    assert version in ("9fcd2f7f1839", "4b825b3f4516")
+

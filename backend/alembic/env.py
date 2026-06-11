@@ -28,7 +28,7 @@ from app.models.base import Base
 from app.models.player import Season, Franchise, Player, PlayerSeason
 from app.models.squad import FranchiseSeason
 from app.models.draft import DraftSession, DraftPick
-from app.models.match import MatchLog
+from app.models.match import Match, MatchEvent
 
 target_metadata = Base.metadata
 
