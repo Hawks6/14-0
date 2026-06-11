@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import String, Integer, ForeignKey
+from sqlalchemy import String, Integer, ForeignKey, Float
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base
@@ -16,6 +16,10 @@ class Match(Base):
     opponent_score: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     opponent_wickets: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     winner: Mapped[str] = mapped_column(String(50), nullable=True) # "USER", "OPPONENT", "TIE"
+    opponent_team: Mapped[str] = mapped_column(String(100), nullable=True)
+    user_team: Mapped[str] = mapped_column(String(100), default="Your XI", server_default="Your XI", nullable=False)
+    user_overs: Mapped[float] = mapped_column(Float, default=0.0, server_default="0.0", nullable=False)
+    opponent_overs: Mapped[float] = mapped_column(Float, default=0.0, server_default="0.0", nullable=False)
 
     draft_session: Mapped["DraftSession"] = relationship("DraftSession")
     events: Mapped[list["MatchEvent"]] = relationship(back_populates="match", cascade="all, delete-orphan")

@@ -1,87 +1,50 @@
 "use client";
 
 import { motion, AnimatePresence } from "motion/react";
-import { Player, PlayerRole } from "@/types/draft";
+import { Player } from "@/types/draft";
 
 // ─── Role badge styling ─────────────────────────────────────────────
-
-const ROLE_CONFIG: Record<
-  PlayerRole,
-  { label: string; color: string; bg: string; icon: string }
-> = {
-  WK: {
-    label: "WK",
-    color: "text-emerald-300",
-    bg: "bg-emerald-500/15 border-emerald-500/30",
-    icon: "🧤",
-  },
-  BAT: {
-    label: "BAT",
-    color: "text-sky-300",
-    bg: "bg-sky-500/15 border-sky-500/30",
-    icon: "🏏",
-  },
-  BOWL: {
-    label: "BOWL",
-    color: "text-rose-300",
-    bg: "bg-rose-500/15 border-rose-500/30",
-    icon: "🎯",
-  },
-  AR: {
-    label: "AR",
-    color: "text-purple-300",
-    bg: "bg-purple-500/15 border-purple-500/30",
-    icon: "⚡",
-  },
+const ROLE_MAP: Record<string, string> = {
+  WK: "WK",
+  WICKETKEEPER: "WK",
+  BAT: "BAT",
+  BATSMAN: "BAT",
+  BOWL: "BWL",
+  BOWLER: "BWL",
+  AR: "AR",
+  ALLROUNDER: "AR",
 };
 
 // ─── Country flag helper ────────────────────────────────────────────
-
-function countryToFlag(country: string): string {
+function countryToIso(nationality: string): string {
   const map: Record<string, string> = {
-    IND: "🇮🇳",
-    AUS: "🇦🇺",
-    ENG: "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
-    SA: "🇿🇦",
-    NZ: "🇳🇿",
-    WI: "🇯🇲",
-    SL: "🇱🇰",
-    PAK: "🇵🇰",
-    BAN: "🇧🇩",
-    AFG: "🇦🇫",
-    ZIM: "🇿🇼",
-    IRE: "🇮🇪",
-    NEP: "🇳🇵",
-    UAE: "🇦🇪",
+    "INDIAN": "in",
+    "AUSTRALIAN": "au",
+    "ENGLISH": "gb-eng",
+    "SOUTH AFRICAN": "za",
+    "NEW ZEALANDER": "nz",
+    "WEST INDIAN": "jm", // Defaulting to Jamaica for WI
+    "SRI LANKAN": "lk",
+    "PAKISTANI": "pk",
+    "BANGLADESHI": "bd",
+    "AFGHAN": "af",
+    "ZIMBABWEAN": "zw",
+    "IRISH": "ie",
+    "NEPALESE": "np",
+    "DUTCH": "nl",
+    "SINGAPOREAN": "sg",
   };
-  return map[country?.toUpperCase()] || "🏳️";
+  return map[nationality?.toUpperCase()] || "un";
 }
 
-// ─── Stat Bar ───────────────────────────────────────────────────────
-
-function StatBar({ label, value, color }: { label: string; value: number; color: string }) {
-  return (
-    <div className="flex items-center gap-2">
-      <span className="w-8 text-[10px] font-medium uppercase tracking-wider text-zinc-500">
-        {label}
-      </span>
-      <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-white/5">
-        <motion.div
-          className={`absolute inset-y-0 left-0 rounded-full ${color}`}
-          initial={{ width: 0 }}
-          animate={{ width: `${value}%` }}
-          transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-        />
-      </div>
-      <span className="w-7 text-right text-[10px] font-bold text-zinc-400">
-        {value}
-      </span>
-    </div>
-  );
+// ─── Deterministic Face Helper ──────────────────────────────────────
+function getFaceIndex(playerId: string): number {
+  const hex = playerId.replace(/-/g, "").substring(0, 8);
+  const num = parseInt(hex, 16);
+  return (num % 5) + 1;
 }
 
 // ─── PlayerCard ─────────────────────────────────────────────────────
-
 interface PlayerCardProps {
   player: Player;
   onSelect: (player: Player) => void;
@@ -97,7 +60,8 @@ export default function PlayerCard({
   canPick,
   index,
 }: PlayerCardProps) {
-  const role = ROLE_CONFIG[player.role];
+  const role = ROLE_MAP[player.role] || "AR";
+  const faceIndex = getFaceIndex(player.player_id);
 
   return (
     <motion.div
@@ -116,82 +80,106 @@ export default function PlayerCard({
       whileTap={canPick ? { scale: 0.98 } : {}}
       onClick={() => canPick && onSelect(player)}
       className={`
-        group relative cursor-pointer overflow-hidden rounded-xl border
-        transition-colors duration-200
+        relative cursor-pointer overflow-hidden
+        w-full max-w-[280px] mx-auto select-none
         ${
-          isSelected
-            ? "border-amber-400/60 bg-amber-500/10 shadow-[0_0_20px_rgba(251,191,36,0.15)]"
-            : canPick
-            ? "border-white/8 bg-white/[0.03] hover:border-white/15 hover:bg-white/[0.06]"
-            : "cursor-not-allowed border-white/5 bg-white/[0.02] opacity-50"
+          canPick
+            ? "opacity-100"
+            : "cursor-not-allowed opacity-60 grayscale-[0.5]"
         }
       `}
+      style={{
+        background: "#313638",
+        border: "4px solid #1a1c1d",
+        borderRadius: "8px",
+        padding: "4px",
+      }}
     >
-      {/* Overseas badge */}
-      {player.is_overseas && (
-        <div className="absolute right-2 top-2 z-10">
-          <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-400">
-            OS
-          </div>
-        </div>
-      )}
+      {/* Inner Card Area */}
+      <div className="relative bg-[#c29b76] h-full flex flex-col border-[3px] border-[#a07c5b] rounded-[4px] p-2">
+        <div 
+          className="absolute inset-0 opacity-20 pointer-events-none"
+          style={{
+            backgroundImage: "radial-gradient(#5a4231 1.5px, transparent 1px)",
+            backgroundSize: "6px 6px"
+          }}
+        />
 
-      {/* Card content */}
-      <div className="p-4">
-        {/* Header: name + flag */}
-        <div className="mb-3 flex items-start gap-2">
-          <span className="text-xl">{countryToFlag(player.country)}</span>
-          <div className="min-w-0 flex-1">
-            <h3 className="truncate text-sm font-bold text-white group-hover:text-amber-200 transition-colors">
+        <div className="relative z-10 flex flex-col h-full">
+          {/* Top Banner (Name) */}
+          <div className="bg-[#e4d4b9] border-2 border-[#1a1c1d] rounded-sm py-0.5 px-2 text-center mb-2 shadow-[2px_2px_0_#1a1c1d]">
+            <h3 className="text-[1.1rem] font-body text-[#1a1c1d] uppercase tracking-wider leading-none mt-1 whitespace-nowrap overflow-hidden text-ellipsis">
               {player.name}
             </h3>
-            <div className="mt-1 flex items-center gap-1.5">
-              <span
-                className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-semibold ${role.bg} ${role.color}`}
-              >
-                {role.icon} {role.label}
-              </span>
+          </div>
+
+          {/* Portrait Section */}
+          <div className="flex justify-between items-start mb-2">
+            {/* Left Col: Role & Flag */}
+            <div className="flex flex-col gap-1 w-[36px]">
+              <div className="bg-white border-2 border-[#1a1c1d] text-[#1a1c1d] text-center font-body text-lg font-black leading-none py-1 shadow-[2px_2px_0_#1a1c1d]">
+                {role}
+              </div>
+              <div className="bg-white border-2 border-[#1a1c1d] text-center py-1 shadow-[2px_2px_0_#1a1c1d] flex items-center justify-center">
+                <img 
+                  src={`https://flagcdn.com/w40/${countryToIso(player.country)}.png`} 
+                  alt={player.country}
+                  className="w-[24px] border border-[#1a1c1d]"
+                  style={{ imageRendering: "pixelated" }}
+                />
+              </div>
+            </div>
+
+            {/* Center: Face Image */}
+            <div className="relative w-[120px] h-[120px]">
+              <img 
+                src={`/faces/face_${faceIndex}.png`} 
+                alt="Player Face" 
+                className="w-full h-full object-cover border-4 border-white drop-shadow-[4px_4px_0_rgba(0,0,0,0.5)] bg-[#eedcc0]"
+                style={{ imageRendering: "pixelated" }}
+              />
+            </div>
+
+            {/* Right Col: Rating & Overseas Airplane */}
+            <div className="flex flex-col gap-1 w-[44px] items-center">
+              <div className="bg-[#1a1c1d] text-accent-gold border-2 border-[#4a3b32] text-center font-body text-xl font-bold px-1 py-1 shadow-[2px_2px_0_#4a3b32] leading-none">
+                {player.prime_rating}
+              </div>
+              {player.is_overseas && (
+                <div className="mt-1 text-xl animate-pulse">
+                  ✈️
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Stats Box - Clean layout */}
+          <div className="bg-[#1a1c1d] border-2 border-[#4a3b32] p-3 shadow-[inset_0_0_8px_rgba(0,0,0,0.5)]">
+            <div className="grid grid-cols-2 gap-y-2 text-white font-body text-[16px] leading-none mb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🏏</span> {player.percentile_batting}
+              </div>
+              <div className="flex items-center gap-2 justify-end">
+                <span className="text-xl">🎯</span> {player.percentile_bowling}
+              </div>
+              <div className="col-span-2 flex items-center justify-center text-[#e4d4b9] mt-1">
+                Season R. {player.season_rating}
+              </div>
+            </div>
+            
+            {/* Cost row inline */}
+            <div className="flex justify-between items-center pt-2 border-t-2 border-[#4a3b32] border-dotted">
+              <span className="font-body text-[#a07c5b] text-[16px]">COST</span>
+              <span className="font-body text-accent-gold text-2xl leading-none">{player.credit_cost} CR</span>
             </div>
           </div>
         </div>
-
-        {/* Stats */}
-        <div className="mb-3 space-y-1.5">
-          {player.percentile_batting > 0 && (
-            <StatBar
-              label="BAT"
-              value={player.percentile_batting}
-              color="bg-gradient-to-r from-sky-500 to-cyan-400"
-            />
-          )}
-          {player.percentile_bowling > 0 && (
-            <StatBar
-              label="BWL"
-              value={player.percentile_bowling}
-              color="bg-gradient-to-r from-rose-500 to-pink-400"
-            />
-          )}
-        </div>
-
-        {/* Cost */}
-        <div className="flex items-center justify-between border-t border-white/5 pt-2">
-          <span className="text-[10px] uppercase tracking-wider text-zinc-500">
-            Cost
-          </span>
-          <span className="font-mono text-sm font-black text-amber-400">
-            {player.credit_cost}
-            <span className="ml-0.5 text-[10px] font-normal text-amber-400/60">
-              cr
-            </span>
-          </span>
-        </div>
       </div>
 
-      {/* Selection glow */}
       <AnimatePresence>
         {isSelected && (
           <motion.div
-            className="absolute inset-0 rounded-xl border-2 border-amber-400/40"
+            className="absolute inset-0 border-[6px] border-accent-gold pointer-events-none mix-blend-overlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -200,8 +188,11 @@ export default function PlayerCard({
         )}
       </AnimatePresence>
 
-      {/* Hover shine */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+      {isSelected && (
+        <div className="absolute top-1 left-1 text-2xl animate-bounce z-20">
+          ⭐
+        </div>
+      )}
     </motion.div>
   );
 }

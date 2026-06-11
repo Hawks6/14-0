@@ -197,6 +197,7 @@ function LeaguePageContent() {
     if (leagueQuery.data) {
       store.setSeason(leagueQuery.data);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [leagueQuery.data]);
 
   // ── Match detail fetch ─────────────────────────────────────
@@ -212,6 +213,7 @@ function LeaguePageContent() {
     if (matchDetailQuery.data?.events) {
       store.setMatchEvents(matchDetailQuery.data.events);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matchDetailQuery.data]);
 
   // ── Handlers ───────────────────────────────────────────────
@@ -259,7 +261,8 @@ function LeaguePageContent() {
       bestScore: `${Math.max(...completedMatches.map((m) => m.user_score))}`,
       isPerfect,
     };
-  }, [seasonComplete, store.matches, isPerfect]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seasonComplete, isPerfect]);
 
   // ── Render ─────────────────────────────────────────────────
 

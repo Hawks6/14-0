@@ -29,12 +29,6 @@ export interface LeagueMatch {
 export interface LeagueSeason {
   draft_session_id: string;
   matches: LeagueMatch[];
-  status: "not_started" | "in_progress" | "completed";
-  total_wins: number;
-  total_losses: number;
-  total_ties: number;
-  points: number;
-  nrr: number;
 }
 
 /** Computed season standings entry */

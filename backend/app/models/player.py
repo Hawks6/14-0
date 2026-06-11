@@ -58,6 +58,9 @@ class PlayerSeason(Base):
     percentile_batting: Mapped[int] = mapped_column(Integer, default=50, nullable=False)
     percentile_bowling: Mapped[int] = mapped_column(Integer, default=50, nullable=False)
     credit_cost: Mapped[float] = mapped_column(Float, default=6.0, nullable=False)
+    
+    prime_rating: Mapped[int] = mapped_column(Integer, default=50, nullable=False)
+    season_rating: Mapped[int] = mapped_column(Integer, default=50, nullable=False)
 
     player: Mapped["Player"] = relationship(back_populates="player_seasons")
     season: Mapped["Season"] = relationship(back_populates="player_seasons")

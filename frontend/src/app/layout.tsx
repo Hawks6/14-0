@@ -1,23 +1,24 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Outfit } from "next/font/google";
+import { VT323, Teko } from "next/font/google";
 import { QueryProvider } from "@/providers/QueryProvider";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
+const vt323 = VT323({
+  variable: "--font-vt323",
   subsets: ["latin"],
   display: "swap",
+  weight: "400",
 });
 
-const outfit = Outfit({
-  variable: "--font-outfit",
+const teko = Teko({
+  variable: "--font-teko",
   subsets: ["latin"],
   display: "swap",
-  weight: ["400", "500", "600", "700", "800", "900"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "14-0 | IPL Draft & Simulation Platform",
+  title: "14-0 | IPL Draft Simulator",
   description:
     "Spin for a random historical IPL franchise, draft your dream XI under salary cap constraints, and simulate a 14-match league aiming for the perfect 14-0 season.",
   keywords: [
@@ -30,7 +31,7 @@ export const metadata: Metadata = {
     "dream team",
   ],
   openGraph: {
-    title: "14-0 | IPL Draft & Simulation Platform",
+    title: "14-0 | IPL Draft Simulator",
     description:
       "Draft legendary IPL squads. Simulate your way to an unbeaten season.",
     type: "website",
@@ -40,7 +41,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#06070d",
+  themeColor: "#1a1a1a",
 };
 
 export default function RootLayout({
@@ -51,9 +52,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${outfit.variable} h-full antialiased`}
+      className={`${vt323.variable} ${teko.variable} h-full antialiased`}
+      data-scroll-behavior="smooth"
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground">
+      <body className="min-h-full flex flex-col bg-[#1a1a1a] text-white">
         <QueryProvider>{children}</QueryProvider>
       </body>
     </html>

@@ -110,7 +110,10 @@ class InningsSimulator:
         
         # Bowler tracking
         bowlers = [p for p in bowling_lineup if get_player_role(p) in {"BOWL", "ALLROUNDER"}]
-        if not bowlers:
+        if len(bowlers) < 5:
+            part_timers = [p for p in bowling_lineup if get_player_role(p) != "WK" and p not in bowlers]
+            bowlers.extend(part_timers)
+        if len(bowlers) < 5:
             bowlers = list(bowling_lineup)
         else:
             bowlers = list(bowlers)

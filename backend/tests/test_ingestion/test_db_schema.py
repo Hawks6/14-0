@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy import text
 from app.models.player import Season, Franchise, Player, PlayerSeason
 from app.models.squad import FranchiseSeason
-from app.models.match import MatchLog
+from app.models.match import Match, MatchEvent
 from app.models.draft import DraftSession, DraftPick
 
 pytestmark = pytest.mark.anyio
@@ -23,7 +23,8 @@ async def test_models_queryable(db_session):
         Player,
         PlayerSeason,
         FranchiseSeason,
-        MatchLog,
+        Match,
+        MatchEvent,
         DraftSession,
         DraftPick
     ]
@@ -37,5 +38,4 @@ async def test_alembic_migration_applied(db_session):
     """Verify that Alembic migrations have been successfully applied up to the initial schema."""
     result = await db_session.execute(text("SELECT version_num FROM alembic_version"))
     version = result.scalar()
-    assert version in ("9fcd2f7f1839", "4b825b3f4516")
-
+    assert version in ("9fcd2f7f1839", "4b825b3f4516", "61b3920ffd81", "666d596c1f37")

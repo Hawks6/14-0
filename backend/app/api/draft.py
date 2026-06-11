@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
+from sqlalchemy.orm import joinedload
 
 from app.core.database import get_db
 from app.core.redis import get_draft_session, save_draft_session
@@ -34,6 +35,8 @@ class PlayerDetail(BaseModel):
     credit_cost: float
     percentile_batting: int
     percentile_bowling: int
+    prime_rating: int
+    season_rating: int
 
 class SpinResponse(BaseModel):
     franchise_name: str
@@ -183,6 +186,7 @@ async def trigger_spin(session_id: uuid.UUID, db: AsyncSession = Depends(get_db)
             PlayerSeason.season_id == chosen_fs.season_id
         )
         .join(Player)
+        .options(joinedload(PlayerSeason.player))
     )
     players_result = await db.execute(players_stmt)
     player_seasons = players_result.scalars().all()
@@ -200,7 +204,9 @@ async def trigger_spin(session_id: uuid.UUID, db: AsyncSession = Depends(get_db)
                 "is_overseas": ps.player.is_overseas,
                 "credit_cost": ps.credit_cost,
                 "percentile_batting": ps.percentile_batting,
-                "percentile_bowling": ps.percentile_bowling
+                "percentile_bowling": ps.percentile_bowling,
+                "prime_rating": ps.prime_rating,
+                "season_rating": ps.season_rating
             }
         )
 
@@ -291,7 +297,7 @@ async def draft_player(session_id: uuid.UUID, body: DraftPickRequest, db: AsyncS
 
     # 4. PuLP Solvability Verification
     # Fetch all candidate player seasons to check future solvability
-    candidates_stmt = select(PlayerSeason).join(Player)
+    candidates_stmt = select(PlayerSeason).join(Player).options(joinedload(PlayerSeason.player))
     candidates_res = await db.execute(candidates_stmt)
     db_candidates = candidates_res.scalars().all()
     
@@ -413,6 +419,7 @@ async def get_session(session_id: uuid.UUID, db: AsyncSession = Depends(get_db))
                 select(PlayerSeason)
                 .where(PlayerSeason.id == pick.player_season_id)
                 .join(Player)
+                .options(joinedload(PlayerSeason.player))
             )
             ps_res = await db.execute(player_season_stmt)
             ps = ps_res.scalar_one()

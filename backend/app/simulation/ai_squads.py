@@ -37,11 +37,11 @@ def generate_optimal_squad(candidate_players: List[Dict[str, Any]]) -> List[Dict
     # 1. Total slots = 11
     prob += pulp.lpSum(x[i] for i in range(len(candidate_players))) == 11
     
-    # 2. Total credit cost <= 100
+    # 2. Total credit cost relaxed for AI squads (since historical squads are sometimes very strong)
     prob += pulp.lpSum(
         candidate_players[i].get("credit_cost", 0.0) * x[i]
         for i in range(len(candidate_players))
-    ) <= 100.0
+    ) <= 120.0
     
     # 3. Exactly 1 Wicketkeeper (WK)
     prob += pulp.lpSum(

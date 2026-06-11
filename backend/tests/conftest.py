@@ -32,22 +32,22 @@ def setup_test_db():
     if not os.path.exists(alembic_bin) and os.name == "nt":
         alembic_bin = alembic_bin + ".exe"
 
-    upgrade_result = subprocess.run(
-        [alembic_bin, "upgrade", "head"],
-        env=env,
-        capture_output=True,
-        text=True,
-        cwd=backend_dir
-    )
-    if upgrade_result.returncode != 0:
-        # Don't hard-fail if the DB is already at head or unreachable —
-        # simulation tests are pure-Python and don't need the DB.
-        import warnings
-        warnings.warn(
-            f"Alembic upgrade returned non-zero: {upgrade_result.returncode}\n"
-            f"{upgrade_result.stderr}\n{upgrade_result.stdout}",
-            stacklevel=2,
-        )
+#    upgrade_result = subprocess.run(
+#        [alembic_bin, "upgrade", "head"],
+#        env=env,
+#        capture_output=True,
+#        text=True,
+#        cwd=backend_dir
+#    )
+#    if upgrade_result.returncode != 0:
+#        # Don't hard-fail if the DB is already at head or unreachable —
+#        # simulation tests are pure-Python and don't need the DB.
+#        import warnings
+#        warnings.warn(
+#            f"Alembic upgrade returned non-zero: {upgrade_result.returncode}\n"
+#            f"{upgrade_result.stderr}\n{upgrade_result.stdout}",
+#            stacklevel=2,
+#        )
         
     yield
     
@@ -82,3 +82,18 @@ async def db_session(db_engine):
         yield session
         await session.close()
         await transaction.rollback()
+
+@pytest.fixture(autouse=True)
+def override_db_dependency(request):
+    import inspect
+    if inspect.iscoroutinefunction(request.node.obj):
+        db_session = request.getfixturevalue("db_session")
+        from app.main import app
+        from app.core.database import get_db
+        async def _get_db_override():
+            yield db_session
+        app.dependency_overrides[get_db] = _get_db_override
+        yield
+        app.dependency_overrides.pop(get_db, None)
+    else:
+        yield

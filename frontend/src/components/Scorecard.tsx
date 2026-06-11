@@ -5,7 +5,7 @@ import type { LeagueMatch } from "@/types/league";
 
 // ─── Overs formatting ──────────────────────────────────────────────
 
-function formatOvers(overs: number | undefined, wickets: number): string {
+function formatOvers(overs: number | undefined): string {
   if (overs !== undefined) {
     return `(${overs} ov)`;
   }
@@ -32,17 +32,18 @@ function ScoreBlock({
   return (
     <div className="flex flex-1 flex-col items-center gap-1">
       {/* Team label */}
-      <div className="flex items-center gap-1.5">
+      <div className="flex flex-col items-center gap-0.5">
+        {isUser && (
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-accent-gold mb-0.5" />
+        )}
         <span
-          className={`text-xs font-bold uppercase tracking-wider ${
-            isUser ? "text-accent-gold" : "text-zinc-400"
+          className={`max-w-[130px] text-center text-[11px] font-bold leading-snug line-clamp-2 ${
+            isUser ? "text-amber-300" : "text-zinc-300"
           }`}
+          title={label}
         >
           {label}
         </span>
-        {isUser && (
-          <span className="inline-block h-1.5 w-1.5 rounded-full bg-accent-gold" />
-        )}
       </div>
 
       {/* Score */}
@@ -63,7 +64,7 @@ function ScoreBlock({
 
       {/* Overs */}
       <span className="text-[10px] text-zinc-500">
-        {formatOvers(overs, wickets)}
+        {formatOvers(overs)}
       </span>
     </div>
   );

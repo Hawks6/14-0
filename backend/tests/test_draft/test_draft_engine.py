@@ -11,7 +11,7 @@ os.environ["DATABASE_URL"] = "postgresql+asyncpg://postgres:postgres@localhost:5
 from app.main import app
 from app.models.player import Season, Franchise, Player, PlayerSeason
 from app.models.squad import FranchiseSeason
-from app.core.redis import get_redis, init_redis_pool, close_redis_pool
+from app.core.redis import get_redis, init_redis_pool, close_redis_pool, get_draft_session, save_draft_session
 
 
 pytestmark = pytest.mark.anyio
@@ -58,21 +58,25 @@ async def seed_data(db_session):
     
     # Create Players
     players_data = [
-        # RCB Squad: 6 players (1 WK, 2 Bowlers, 1 Overseas WK, 2 Overseas Bowlers/BAT)
-        ("Virat Kohli", "India", "BAT", False, 11.5, 99, 10),
-        ("Faf du Plessis", "South Africa", "BAT", True, 9.0, 80, 5),
-        ("Dinesh Karthik", "India", "WK", False, 8.5, 75, 5),
-        ("Mohammed Siraj", "India", "BOWL", False, 9.0, 10, 85),
-        ("Lockie Ferguson", "New Zealand", "BOWL", True, 8.0, 5, 75),
-        ("Glenn Maxwell", "Australia", "ALLROUNDER", True, 9.5, 85, 70),
+        # RCB Squad: 8 players
+        ("Virat Kohli", "India", "BAT", False, 8.5, 99, 10),
+        ("Faf du Plessis", "South Africa", "BAT", True, 7.0, 80, 5),
+        ("Dinesh Karthik", "India", "WK", False, 6.5, 75, 5),
+        ("Mohammed Siraj", "India", "BOWL", False, 7.0, 10, 85),
+        ("Lockie Ferguson", "New Zealand", "BOWL", True, 6.0, 5, 75),
+        ("Glenn Maxwell", "Australia", "ALLROUNDER", True, 7.5, 85, 70),
+        ("Rajat Patidar", "India", "BAT", False, 6.0, 80, 0),
+        ("Yash Dayal", "India", "BOWL", False, 5.5, 0, 80),
         
-        # MI Squad: 6 players
-        ("Rohit Sharma", "India", "BAT", False, 10.5, 95, 5),
-        ("Jasprit Bumrah", "India", "BOWL", False, 12.0, 5, 99),
-        ("Ishan Kishan", "India", "WK", False, 9.5, 85, 5),
-        ("Hardik Pandya", "India", "ALLROUNDER", False, 10.0, 85, 85),
-        ("Gerald Coetzee", "South Africa", "BOWL", True, 8.5, 10, 80),
-        ("Tim David", "Australia", "BAT", True, 8.0, 75, 20),
+        # MI Squad: 8 players
+        ("Rohit Sharma", "India", "BAT", False, 8.0, 95, 5),
+        ("Jasprit Bumrah", "India", "BOWL", False, 9.0, 5, 99),
+        ("Ishan Kishan", "India", "WK", False, 7.5, 85, 5),
+        ("Hardik Pandya", "India", "ALLROUNDER", False, 8.0, 85, 85),
+        ("Gerald Coetzee", "South Africa", "BOWL", True, 6.5, 10, 80),
+        ("Tim David", "Australia", "BAT", True, 6.0, 75, 20),
+        ("Tilak Varma", "India", "BAT", False, 6.5, 85, 0),
+        ("Piyush Chawla", "India", "BOWL", False, 6.0, 10, 80),
     ]
     
     db_players = []
@@ -84,8 +88,8 @@ async def seed_data(db_session):
         db_players.append(p)
         await db_session.flush()
         
-        # Associate with franchise (RCB for first 6, MI for last 6)
-        franchise_id = rcb.id if len(db_players) <= 6 else mi.id
+        # Associate with franchise (RCB for first 8, MI for last 8)
+        franchise_id = rcb.id if len(db_players) <= 8 else mi.id
         ps = PlayerSeason(
             id=uuid.uuid4(),
             player_id=p.id,
@@ -131,7 +135,7 @@ async def test_trigger_spin(seed_data):
         spin_data = res_spin.json()
         assert "franchise_name" in spin_data
         assert "year" in spin_data
-        assert len(spin_data["players"]) == 6
+        assert len(spin_data["players"]) == 8
 
 
 async def test_draft_pick_success(seed_data):

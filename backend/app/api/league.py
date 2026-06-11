@@ -1,5 +1,6 @@
 import uuid
 import logging
+import random
 from typing import List, Optional, Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
@@ -8,8 +9,11 @@ from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
 from app.core.database import get_db
-from app.models.draft import DraftSession
+from app.models.draft import DraftSession, DraftPick
 from app.models.match import Match, MatchEvent
+from app.models.player import Player, PlayerSeason
+from app.simulation.ai_squads import generate_tournament_schedule
+from app.simulation.league import Team, LeagueOrchestrator
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +41,10 @@ class MatchDetail(BaseModel):
     opponent_score: int
     opponent_wickets: int
     winner: Optional[str] = None
+    user_team: Optional[str] = None
+    opponent_team: Optional[str] = None
+    user_overs: Optional[float] = None
+    opponent_overs: Optional[float] = None
 
 class MatchWithEvents(MatchDetail):
     events: List[MatchEventDetail]
@@ -49,7 +57,7 @@ class LeagueResponse(BaseModel):
 async def start_league(draft_session_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
     """
     Starts a 14-match league for a completed draft session.
-    Generates 14 SCHEDULED matches.
+    Generates and simulates 14 matches against AI opponent squads.
     """
     # 1. Fetch DraftSession
     draft_stmt = select(DraftSession).where(DraftSession.id == draft_session_id)
@@ -76,24 +84,196 @@ async def start_league(draft_session_id: uuid.UUID, db: AsyncSession = Depends(g
             detail="League already started for this draft session."
         )
 
-    # 3. Create 14 Matches
+    # 3. Retrieve user drafted players
+    picks_stmt = select(DraftPick).where(DraftPick.draft_session_id == draft_session_id).order_by(DraftPick.pick_number)
+    picks_res = await db.execute(picks_stmt)
+    db_picks = picks_res.scalars().all()
+    
+    if not db_picks or len(db_picks) < 11:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Roster is incomplete (only {len(db_picks)}/11 players drafted)"
+        )
+        
+    user_players = []
+    for pick in db_picks:
+        ps_stmt = select(PlayerSeason).where(PlayerSeason.id == pick.player_season_id).options(joinedload(PlayerSeason.player))
+        ps_res = await db.execute(ps_stmt)
+        ps = ps_res.scalar_one()
+        user_players.append({
+            "player_id": str(ps.player_id),
+            "name": ps.player.name,
+            "role": ps.player.role,
+            "is_overseas": ps.player.is_overseas,
+            "percentile_batting": ps.percentile_batting,
+            "percentile_bowling": ps.percentile_bowling,
+            "credit_cost": ps.credit_cost
+        })
+
+    # 4. Generate 14-match AI opponent schedule
+    schedule_data = await generate_tournament_schedule(db, num_matches=14)
+    if not schedule_data:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to generate AI opponent squads. Check if database is seeded."
+        )
+
+    # 5. Simulate matches and create db records
     new_matches = []
-    for i in range(1, 15):
+    for match_data in schedule_data:
+        match_num = match_data["match_number"]
+        opp_name = f"{match_data['franchise_name']} ({match_data['season_year']})"
+        opp_squad = match_data["squad"]
+        
+        # Convert rosters to Team objects
+        user_team = Team(
+            id="user",
+            name="Your XI",
+            batting_lineup=[{**p, "id": p["player_id"]} for p in user_players],
+            bowling_lineup=[{**p, "id": p["player_id"]} for p in user_players]
+        )
+        
+        opponent_team = Team(
+            id="opponent",
+            name=opp_name,
+            batting_lineup=[{**p, "id": p["player_id"]} for p in opp_squad],
+            bowling_lineup=[{**p, "id": p["player_id"]} for p in opp_squad]
+        )
+        
+        # Build striker/bowler name to player_id lookup mapping
+        name_to_id = {}
+        for p in user_players:
+            name_to_id[p["name"]] = uuid.UUID(p["player_id"])
+        for p in opp_squad:
+            name_to_id[p["name"]] = uuid.UUID(p["player_id"])
+            
+        # Instantiate orchestrator with randomized seed for variance
+        match_seed = random.randint(1, 100000)
+        orchestrator = LeagueOrchestrator(teams=[user_team, opponent_team], seed=match_seed)
+        
+        # Odd match number: user bats first. Even: opponent bats first.
+        if match_num % 2 == 1:
+            sim_res = orchestrator.simulate_match("user", "opponent")
+        else:
+            sim_res = orchestrator.simulate_match("opponent", "user")
+            
+        # Determine winner string
+        if sim_res.is_tie:
+            winner_str = "tie"
+        elif sim_res.winner_id == "user":
+            winner_str = "user"
+        else:
+            winner_str = "opponent"
+            
+        # Extract user/opponent scores, wickets, overs based on who batted first
+        if match_num % 2 == 1:
+            user_score = sim_res.team1_innings.total_runs
+            user_wickets = sim_res.team1_innings.wickets
+            user_overs = round(sim_res.team1_innings.overs_bowled, 1)
+            
+            opponent_score = sim_res.team2_innings.total_runs
+            opponent_wickets = sim_res.team2_innings.wickets
+            opponent_overs = round(sim_res.team2_innings.overs_bowled, 1)
+        else:
+            opponent_score = sim_res.team1_innings.total_runs
+            opponent_wickets = sim_res.team1_innings.wickets
+            opponent_overs = round(sim_res.team1_innings.overs_bowled, 1)
+            
+            user_score = sim_res.team2_innings.total_runs
+            user_wickets = sim_res.team2_innings.wickets
+            user_overs = round(sim_res.team2_innings.overs_bowled, 1)
+            
+        m_id = uuid.UUID(sim_res.match_id)
+        
         m = Match(
-            id=uuid.uuid4(),
+            id=m_id,
             draft_session_id=draft_session_id,
-            match_number=i,
-            status="SCHEDULED",
-            user_score=0,
-            user_wickets=0,
-            opponent_score=0,
-            opponent_wickets=0,
-            winner=None
+            match_number=match_num,
+            status="completed",
+            user_score=user_score,
+            user_wickets=user_wickets,
+            user_overs=user_overs,
+            opponent_score=opponent_score,
+            opponent_wickets=opponent_wickets,
+            opponent_overs=opponent_overs,
+            opponent_team=opp_name,
+            user_team="Your XI",
+            winner=winner_str
         )
         db.add(m)
         new_matches.append(m)
+        
+        # Save delivery events for Innings 1
+        for ball_log in sim_res.team1_innings.delivery_log:
+            if "outcome" not in ball_log:
+                continue
+            outcome_str = ball_log["outcome"]
+            runs_scored = 0
+            extras = 0
+            if outcome_str in ("WIDE", "NO_BALL"):
+                extras = 1
+            elif outcome_str in ("ONE", "TWO", "THREE", "FOUR", "SIX"):
+                mapping = {"ONE": 1, "TWO": 2, "THREE": 3, "FOUR": 4, "SIX": 6}
+                runs_scored = mapping[outcome_str]
+            
+            wicket_type = "OUT" if outcome_str == "WICKET" else None
+            
+            b_id = name_to_id.get(ball_log["striker"])
+            bw_id = name_to_id.get(ball_log["bowler"])
+            if b_id is None or bw_id is None:
+                b_id = b_id or list(name_to_id.values())[0]
+                bw_id = bw_id or list(name_to_id.values())[1]
+                
+            evt = MatchEvent(
+                id=uuid.uuid4(),
+                match_id=m_id,
+                ball_number=ball_log["ball"],
+                over_number=ball_log["over"],
+                batter_id=b_id,
+                bowler_id=bw_id,
+                runs_scored=runs_scored,
+                extras=extras,
+                wicket_type=wicket_type,
+                event_meta=ball_log
+            )
+            db.add(evt)
+            
+        # Save delivery events for Innings 2
+        for ball_log in sim_res.team2_innings.delivery_log:
+            if "outcome" not in ball_log:
+                continue
+            outcome_str = ball_log["outcome"]
+            runs_scored = 0
+            extras = 0
+            if outcome_str in ("WIDE", "NO_BALL"):
+                extras = 1
+            elif outcome_str in ("ONE", "TWO", "THREE", "FOUR", "SIX"):
+                mapping = {"ONE": 1, "TWO": 2, "THREE": 3, "FOUR": 4, "SIX": 6}
+                runs_scored = mapping[outcome_str]
+            
+            wicket_type = "OUT" if outcome_str == "WICKET" else None
+            
+            b_id = name_to_id.get(ball_log["striker"])
+            bw_id = name_to_id.get(ball_log["bowler"])
+            if b_id is None or bw_id is None:
+                b_id = b_id or list(name_to_id.values())[0]
+                bw_id = bw_id or list(name_to_id.values())[1]
+                
+            evt = MatchEvent(
+                id=uuid.uuid4(),
+                match_id=m_id,
+                ball_number=ball_log["ball"],
+                over_number=ball_log["over"],
+                batter_id=b_id,
+                bowler_id=bw_id,
+                runs_scored=runs_scored,
+                extras=extras,
+                wicket_type=wicket_type,
+                event_meta=ball_log
+            )
+            db.add(evt)
 
-    await db.flush()
+    await db.commit()
 
     match_details = [
         MatchDetail(
@@ -103,8 +283,12 @@ async def start_league(draft_session_id: uuid.UUID, db: AsyncSession = Depends(g
             status=m.status,
             user_score=m.user_score,
             user_wickets=m.user_wickets,
+            user_overs=m.user_overs,
             opponent_score=m.opponent_score,
             opponent_wickets=m.opponent_wickets,
+            opponent_overs=m.opponent_overs,
+            opponent_team=m.opponent_team,
+            user_team=m.user_team,
             winner=m.winner
         )
         for m in new_matches
@@ -135,8 +319,12 @@ async def get_league(draft_session_id: uuid.UUID, db: AsyncSession = Depends(get
             status=m.status,
             user_score=m.user_score,
             user_wickets=m.user_wickets,
+            user_overs=m.user_overs,
             opponent_score=m.opponent_score,
             opponent_wickets=m.opponent_wickets,
+            opponent_overs=m.opponent_overs,
+            opponent_team=m.opponent_team,
+            user_team=m.user_team,
             winner=m.winner
         )
         for m in matches
@@ -181,8 +369,12 @@ async def get_match_results(match_id: uuid.UUID, db: AsyncSession = Depends(get_
         status=match_obj.status,
         user_score=match_obj.user_score,
         user_wickets=match_obj.user_wickets,
+        user_overs=match_obj.user_overs,
         opponent_score=match_obj.opponent_score,
         opponent_wickets=match_obj.opponent_wickets,
+        opponent_overs=match_obj.opponent_overs,
+        opponent_team=match_obj.opponent_team,
+        user_team=match_obj.user_team,
         winner=match_obj.winner,
         events=events
     )

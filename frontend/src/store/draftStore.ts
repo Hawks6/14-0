@@ -2,7 +2,6 @@ import { create } from "zustand";
 import {
   Player,
   SpinResult,
-  DraftPick,
   RosterSlot,
   ROSTER_TEMPLATE,
   MAX_BUDGET,

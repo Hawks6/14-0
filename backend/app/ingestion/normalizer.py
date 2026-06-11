@@ -38,9 +38,9 @@ def normalize_ratings_pipeline(df: pd.DataFrame, min_threshold: int = 30) -> pd.
             .astype(int)
         )
         
-    # Compute credit cost: 4.0 + (max(percentile_batting, percentile_bowling) / 99.0) ** 1.8 * 11.0
+    # Compute credit cost: adjusted to bring average cost down to ~8.0 so teams can be drafted within 100 limit.
     max_pct = np.maximum(df['percentile_batting'], df['percentile_bowling'])
-    df['credit_cost'] = 4.0 + (max_pct / 99.0) ** 1.8 * 11.0
+    df['credit_cost'] = 4.5 + (max_pct / 99.0) ** 2.5 * 7.5
     df['credit_cost'] = df['credit_cost'].round(1)
     
     return df

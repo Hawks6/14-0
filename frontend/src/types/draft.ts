@@ -12,6 +12,8 @@ export interface Player {
   credit_cost: number;
   percentile_batting: number;
   percentile_bowling: number;
+  prime_rating: number;
+  season_rating: number;
 }
 
 export interface SpinResult {
@@ -71,4 +73,13 @@ export const FRANCHISE_COLORS: Record<string, { primary: string; secondary: stri
   SRH: { primary: "#FF822A", secondary: "#000000", glow: "rgba(255,130,42,0.4)" },
   GT: { primary: "#1C1C1C", secondary: "#A0D2DB", glow: "rgba(160,210,219,0.4)" },
   LSG: { primary: "#A72056", secondary: "#FFCC00", glow: "rgba(167,32,86,0.4)" },
+  DEC: { primary: "#1A3F66", secondary: "#D4AF37", glow: "rgba(26,63,102,0.4)" },
+  DD: { primary: "#DD1F26", secondary: "#000080", glow: "rgba(221,31,38,0.4)" },
+  KXIP: { primary: "#ED1B24", secondary: "#D4AF37", glow: "rgba(237,27,36,0.4)" },
+  KTK: { primary: "#FF8000", secondary: "#9F000F", glow: "rgba(255,128,0,0.4)" },
+  PWI: { primary: "#008080", secondary: "#C0C0C0", glow: "rgba(0,128,128,0.4)" },
+  GL: { primary: "#FFA500", secondary: "#000080", glow: "rgba(255,165,0,0.4)" },
+  RPS: { primary: "#D11D5B", secondary: "#3A225D", glow: "rgba(209,29,91,0.4)" },
+  RPS2: { primary: "#D11D5B", secondary: "#3A225D", glow: "rgba(209,29,91,0.4)" },
+  RCBB: { primary: "#EC1C24", secondary: "#2B2A29", glow: "rgba(236,28,36,0.4)" },
 };

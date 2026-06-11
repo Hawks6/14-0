@@ -11,7 +11,8 @@ This roadmap defines the implementation path for the 14-0 IPL Draft & Simulation
 - [x] **Phase 3: Draft Engine & Constraint Solver** - Build the spin selection pools and draft optimizer using PuLP.
 - [ ] **Phase 4: Match Orchestrator & Season State** - Set up the 14-match schedule progression and event-sourced logging.
 - [ ] **Phase 5: Advanced Cricket Rules** - Layer on IPL rules including the Impact Player rule and DLS stochastic weather calculations.
-- [ ] **Phase 6: Mobile-First Frontend & Polish** - Create the responsive React interface, spin wheel animations, and scorecard displays.
+- [x] **Phase 6: Mobile-First Frontend & Polish** - Create the responsive React interface, spin wheel animations, and scorecard displays.
+- [ ] **Phase 7: UI Redesign & Live Pitch Art** - Redesign the UI layout theme and add live pitch art visualization, removing the sidebar.
 
 ## Phase Details
 
@@ -104,6 +105,16 @@ Plans:
 - [x] 06-02: Interactive Draftboard and animated Spin Wheel
 - [x] 06-03: Scorecard displays, ball-by-ball ticker, and share card generator
 
+### Phase 7: UI Redesign & Live Pitch Art
+**Goal**: Overhaul the current UI theme, integrate live pitch art for matches, and remove the sidebar.
+**Depends on**: Phase 6
+**Requirements**: UI-05, UI-06
+**Success Criteria**:
+  1. The new aesthetic theme is implemented across all components.
+  2. Live pitch art is integrated to visualize ball-by-ball outcomes.
+  3. The sidebar is completely removed and navigation is adapted.
+**Plans**: TBD
+
 ## Progress
 
 **Execution Order:**
@@ -117,6 +128,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 4. Match Orchestrator & Season State | 0/3 | Not started | - |
 | 5. Advanced Cricket Rules | 0/3 | Not started | - |
 | 6. Mobile-First Frontend & Polish | 3/3 | Complete    | 2026-06-11 |
+| 7. UI Redesign & Live Pitch Art | 0/0 | Not started | - |
 
 ---
 *Roadmap defined: 2026-06-11*

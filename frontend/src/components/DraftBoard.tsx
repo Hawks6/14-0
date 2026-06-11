@@ -1,39 +1,72 @@
 "use client";
 
 import { motion, AnimatePresence } from "motion/react";
-import { RosterSlot, PlayerRole, MAX_BUDGET, MAX_OVERSEAS, ROSTER_SIZE } from "@/types/draft";
+import { RosterSlot, MAX_BUDGET, MAX_OVERSEAS, ROSTER_SIZE } from "@/types/draft";
 
 // ─── Role styling ───────────────────────────────────────────────────
 
 const ROLE_STYLE: Record<
-  PlayerRole,
-  { gradient: string; border: string; icon: string; label: string }
+  string,
+  { bg: string; border: string; icon: string; label: string; text: string }
 > = {
   WK: {
-    gradient: "from-emerald-500/20 to-emerald-800/10",
-    border: "border-emerald-500/20",
+    bg: "bg-emerald-900/40",
+    border: "border-emerald-500",
+    text: "text-emerald-400",
+    icon: "🧤",
+    label: "WK",
+  },
+  WICKETKEEPER: {
+    bg: "bg-emerald-900/40",
+    border: "border-emerald-500",
+    text: "text-emerald-400",
     icon: "🧤",
     label: "WK",
   },
   BAT: {
-    gradient: "from-sky-500/20 to-sky-800/10",
-    border: "border-sky-500/20",
+    bg: "bg-sky-900/40",
+    border: "border-sky-500",
+    text: "text-sky-400",
+    icon: "🏏",
+    label: "BAT",
+  },
+  BATSMAN: {
+    bg: "bg-sky-900/40",
+    border: "border-sky-500",
+    text: "text-sky-400",
     icon: "🏏",
     label: "BAT",
   },
   BOWL: {
-    gradient: "from-rose-500/20 to-rose-800/10",
-    border: "border-rose-500/20",
+    bg: "bg-rose-900/40",
+    border: "border-rose-500",
+    text: "text-rose-400",
+    icon: "🎯",
+    label: "BOWL",
+  },
+  BOWLER: {
+    bg: "bg-rose-900/40",
+    border: "border-rose-500",
+    text: "text-rose-400",
     icon: "🎯",
     label: "BOWL",
   },
   AR: {
-    gradient: "from-purple-500/20 to-purple-800/10",
-    border: "border-purple-500/20",
+    bg: "bg-purple-900/40",
+    border: "border-purple-500",
+    text: "text-purple-400",
+    icon: "⚡",
+    label: "AR",
+  },
+  ALLROUNDER: {
+    bg: "bg-purple-900/40",
+    border: "border-purple-500",
+    text: "text-purple-400",
     icon: "⚡",
     label: "AR",
   },
 };
+
 
 // ─── Budget Bar ─────────────────────────────────────────────────────
 
@@ -42,34 +75,32 @@ function BudgetBar({ remaining }: { remaining: number }) {
   const isLow = pct < 20;
 
   return (
-    <div className="rounded-xl border border-white/8 bg-white/[0.03] p-4">
+    <div className="border-2 border-surface-border bg-surface p-4">
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
-          💰 Budget
+        <span className="text-sm font-heading font-bold uppercase tracking-widest text-text-secondary">
+          BUDGET
         </span>
         <span
-          className={`font-mono text-lg font-black ${
-            isLow ? "text-rose-400" : "text-amber-400"
+          className={`font-body text-xl font-black ${
+            isLow ? "text-accent-red" : "text-accent-gold"
           }`}
         >
           {remaining}
-          <span className="ml-0.5 text-xs font-normal text-amber-400/50">
-            / {MAX_BUDGET}
+          <span className="ml-1 text-sm font-heading font-normal opacity-50">
+            CR
           </span>
         </span>
       </div>
-      <div className="relative h-2 overflow-hidden rounded-full bg-white/5">
+      <div className="relative h-4 overflow-hidden bg-background border border-surface-border">
         <motion.div
-          className={`absolute inset-y-0 left-0 rounded-full ${
+          className={`absolute inset-y-0 left-0 border-r border-background ${
             isLow
-              ? "bg-gradient-to-r from-rose-500 to-red-400"
-              : "bg-gradient-to-r from-amber-500 to-yellow-400"
+              ? "bg-accent-red"
+              : "bg-accent-gold"
           }`}
           animate={{ width: `${pct}%` }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
         />
-        {/* Shine */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent" />
       </div>
     </div>
   );
@@ -95,24 +126,24 @@ export default function DraftBoard({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-sm font-bold uppercase tracking-wider text-white">
-            Your XI
+          <h2 className="text-xl font-heading font-bold uppercase tracking-wider text-white">
+            YOUR XI
           </h2>
-          <p className="text-[11px] text-zinc-500">
-            {picksCount}/{ROSTER_SIZE} players drafted
+          <p className="text-sm font-body text-text-secondary uppercase">
+            {picksCount}/{ROSTER_SIZE} DRAFTED
           </p>
         </div>
         {/* Overseas counter */}
-        <div className="flex items-center gap-2 rounded-lg border border-white/8 bg-white/[0.03] px-3 py-1.5">
-          <span className="text-xs">🌍</span>
+        <div className="flex items-center gap-2 border-2 border-surface-border bg-surface px-3 py-1.5">
+          <span className="text-sm">🌍</span>
           <span
-            className={`font-mono text-sm font-bold ${
-              overseasCount >= MAX_OVERSEAS ? "text-rose-400" : "text-zinc-300"
+            className={`font-body text-lg font-bold ${
+              overseasCount >= MAX_OVERSEAS ? "text-accent-red" : "text-white"
             }`}
           >
             {overseasCount}/{MAX_OVERSEAS}
           </span>
-          <span className="text-[10px] text-zinc-600">OS</span>
+          <span className="text-sm font-heading text-text-muted">OS</span>
         </div>
       </div>
 
@@ -123,7 +154,7 @@ export default function DraftBoard({
       <div className="grid grid-cols-1 gap-2">
         {roster.map((slot, idx) => {
           const roleStyle = slot.requiredRole
-            ? ROLE_STYLE[slot.requiredRole]
+            ? (ROLE_STYLE[slot.requiredRole] || ROLE_STYLE.AR)
             : null;
 
           return (
@@ -134,15 +165,15 @@ export default function DraftBoard({
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: idx * 0.04 }}
               className={`
-                group relative overflow-hidden rounded-lg border p-3
+                group relative overflow-hidden border-2 p-3
                 transition-all duration-200
                 ${
                   slot.player
-                    ? "border-white/10 bg-white/[0.04]"
+                    ? "border-surface-border bg-surface"
                     : `border-dashed ${
-                        roleStyle?.border || "border-white/8"
-                      } bg-gradient-to-r ${
-                        roleStyle?.gradient || "from-white/[0.02] to-transparent"
+                        roleStyle?.border || "border-surface-border"
+                      } ${
+                        roleStyle?.bg || "bg-background"
                       }`
                 }
               `}
@@ -158,34 +189,34 @@ export default function DraftBoard({
                     className="flex items-center gap-3"
                   >
                     {/* Role icon */}
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/5 text-sm">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center border-2 border-surface-border bg-background text-sm">
                       {roleStyle?.icon || "🌟"}
                     </div>
                     {/* Player info */}
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-white">
+                      <p className="truncate text-lg font-heading font-bold text-white uppercase tracking-wide">
                         {slot.player.name}
                       </p>
                       <div className="flex items-center gap-2">
                         <span
-                          className={`text-[10px] font-semibold ${
+                          className={`text-xs font-heading font-bold uppercase ${
                             roleStyle
-                              ? roleStyle.border.replace("border-", "text-").replace("/20", "")
-                              : "text-zinc-400"
+                              ? roleStyle.text
+                              : "text-text-secondary"
                           }`}
                         >
                           {slot.player.role}
                         </span>
                         {slot.player.is_overseas && (
-                          <span className="text-[9px] font-bold text-amber-500/70">
+                          <span className="text-xs font-heading font-bold text-accent-gold">
                             OS
                           </span>
                         )}
                       </div>
                     </div>
                     {/* Cost */}
-                    <span className="font-mono text-xs font-bold text-amber-400/80">
-                      {slot.player.credit_cost}cr
+                    <span className="font-body text-lg font-bold text-accent-gold">
+                      {slot.player.credit_cost}
                     </span>
                   </motion.div>
                 ) : (
@@ -196,58 +227,16 @@ export default function DraftBoard({
                     exit={{ opacity: 0 }}
                     className="flex items-center gap-3"
                   >
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-dashed border-white/10 text-sm text-zinc-600">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center border-2 border-dashed border-surface-border text-sm text-text-muted">
                       {roleStyle?.icon || "?"}
                     </div>
-                    <span className="text-xs text-zinc-600">{slot.label}</span>
+                    <span className="text-sm font-heading uppercase text-text-muted">{slot.label}</span>
                   </motion.div>
                 )}
               </AnimatePresence>
             </motion.div>
           );
         })}
-      </div>
-
-      {/* Progress ring */}
-      <div className="flex items-center justify-center pt-2">
-        <div className="relative h-16 w-16">
-          <svg viewBox="0 0 36 36" className="h-16 w-16 -rotate-90">
-            <circle
-              cx="18"
-              cy="18"
-              r="15.5"
-              fill="none"
-              stroke="rgba(255,255,255,0.05)"
-              strokeWidth="2"
-            />
-            <motion.circle
-              cx="18"
-              cy="18"
-              r="15.5"
-              fill="none"
-              stroke="url(#progress-grad)"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeDasharray="97.4"
-              animate={{
-                strokeDashoffset: 97.4 - (picksCount / ROSTER_SIZE) * 97.4,
-              }}
-              transition={{ type: "spring", stiffness: 100, damping: 20 }}
-            />
-            <defs>
-              <linearGradient id="progress-grad">
-                <stop offset="0%" stopColor="#f59e0b" />
-                <stop offset="100%" stopColor="#eab308" />
-              </linearGradient>
-            </defs>
-          </svg>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="font-mono text-sm font-black text-white">
-              {picksCount}
-              <span className="text-[10px] text-zinc-500">/{ROSTER_SIZE}</span>
-            </span>
-          </div>
-        </div>
       </div>
     </div>
   );

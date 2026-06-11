@@ -3,18 +3,21 @@
 import { useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 
 import { useDraftStore } from "@/store/draftStore";
 import { createDraftSession, triggerSpin, pickPlayer } from "@/lib/api";
 import SpinWheel from "@/components/SpinWheel";
 import DraftBoard from "@/components/DraftBoard";
 import PlayerCard from "@/components/PlayerCard";
+import LivePitchArt from "@/components/LivePitchArt";
 import { SpinResult, Player, MAX_BUDGET } from "@/types/draft";
 
 // ─── Draft Page ─────────────────────────────────────────────────────
 
 export default function DraftPage() {
   const store = useDraftStore();
+  const router = useRouter();
 
   // ── Mutations ──────────────────────────────────────────────
 
@@ -83,44 +86,41 @@ export default function DraftPage() {
     pickMutation.mutate(store.selectedPlayer.player_season_id);
   }, [store.selectedPlayer, pickMutation]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const overseasCount = useMemo(() => store.getOverseasCount(), [store.roster]);
 
   // ── Render ─────────────────────────────────────────────────
 
   return (
-    <div className="relative min-h-screen bg-[#0a0a12] text-white">
-      {/* Background effects */}
+    <div className="relative min-h-screen bg-background text-text-primary font-body">
+      {/* Background pattern */}
       <div className="pointer-events-none fixed inset-0 z-0">
-        <div className="absolute left-1/4 top-0 h-[600px] w-[600px] rounded-full bg-amber-500/[0.03] blur-[120px]" />
-        <div className="absolute bottom-0 right-1/4 h-[500px] w-[500px] rounded-full bg-purple-500/[0.03] blur-[120px]" />
         <div
-          className="absolute inset-0 opacity-[0.015]"
+          className="absolute inset-0 opacity-10"
           style={{
-            backgroundImage:
-              "radial-gradient(rgba(255,255,255,0.3) 1px, transparent 1px)",
+            backgroundImage: "radial-gradient(var(--text-secondary) 1px, transparent 1px)",
             backgroundSize: "32px 32px",
           }}
         />
       </div>
 
       {/* Main content */}
-      <div className="relative z-10 mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <div className="relative z-10 w-full h-screen flex flex-col px-4 py-4 sm:px-6 lg:px-8">
         {/* Top bar */}
-        <header className="mb-8 flex items-center justify-between">
+        <header className="mb-8 flex items-center justify-between border-b-4 border-surface-border pb-4 bg-surface px-6">
           <div>
-            <h1 className="bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-2xl font-black tracking-tight text-transparent sm:text-3xl">
+            <h1 className="text-4xl font-heading font-black tracking-widest text-accent-gold uppercase">
               14-0
             </h1>
-            <p className="text-xs text-zinc-500">IPL Draft Simulator</p>
           </div>
           {store.phase !== "IDLE" && (
             <motion.button
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               onClick={() => store.reset()}
-              className="rounded-lg border border-white/8 bg-white/[0.03] px-3 py-1.5 text-xs text-zinc-400 hover:border-white/15 hover:bg-white/[0.06] hover:text-white transition-all"
+              className="btn-secondary text-sm"
             >
-              Reset Draft
+              RESET DRAFT
             </motion.button>
           )}
         </header>
@@ -132,15 +132,15 @@ export default function DraftPage() {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="mb-6 rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-300"
+              className="mb-6 border-4 border-accent-red bg-background px-4 py-3 text-sm text-accent-red font-heading tracking-wide uppercase"
             >
               <div className="flex items-center justify-between">
                 <span>{store.errorMessage}</span>
                 <button
                   onClick={() => store.setError(null)}
-                  className="ml-4 text-rose-400 hover:text-rose-200"
+                  className="ml-4 hover:text-white"
                 >
-                  ✕
+                  [ X ]
                 </button>
               </div>
             </motion.div>
@@ -153,7 +153,7 @@ export default function DraftPage() {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: "spring", stiffness: 200, damping: 20 }}
-            className="flex flex-col items-center justify-center py-20"
+            className="flex flex-col items-center justify-center py-20 border-4 border-surface-border bg-surface mt-10"
           >
             <motion.div
               className="mb-8 text-7xl"
@@ -162,68 +162,71 @@ export default function DraftPage() {
             >
               🏏
             </motion.div>
-            <h2 className="mb-3 text-center text-3xl font-black text-white sm:text-4xl">
-              Build Your Dream XI
+            <h2 className="mb-4 text-center text-5xl font-heading font-black text-white uppercase tracking-widest">
+              BUILD YOUR DREAM XI
             </h2>
-            <p className="mb-8 max-w-md text-center text-sm text-zinc-400">
-              Spin to discover a random IPL franchise and era. Draft 11 players
-              within 100 credits to build the ultimate squad. Go{" "}
-              <span className="font-bold text-amber-400">14-0</span>.
+            <p className="mb-10 max-w-lg text-center text-lg text-text-secondary font-body uppercase tracking-wide leading-relaxed px-4">
+              SPIN TO DISCOVER A RANDOM FRANCHISE AND ERA. DRAFT 11 PLAYERS
+              WITHIN 100 CREDITS TO BUILD THE ULTIMATE SQUAD. GO{" "}
+              <span className="font-black text-accent-gold">14-0</span>.
             </p>
             <motion.button
               id="start-draft-button"
               onClick={handleStartDraft}
               disabled={createSession.isPending}
-              className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 px-8 py-4 text-sm font-bold uppercase tracking-widest text-black shadow-[0_0_30px_rgba(245,158,11,0.2)] transition-all hover:shadow-[0_0_50px_rgba(245,158,11,0.3)] disabled:opacity-50"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              className="btn-primary text-2xl px-12 py-6"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
-              <motion.div
-                className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                animate={{ translateX: ["-100%", "200%"] }}
-                transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 2 }}
-              />
               <span className="relative z-10">
-                {createSession.isPending ? "Creating Session…" : "Start Draft"}
+                {createSession.isPending ? "INITIALIZING..." : "START DRAFT"}
               </span>
             </motion.button>
           </motion.div>
         )}
 
-        {/* ACTIVE DRAFT: Spin + Board + Pool */}
+        {/* ACTIVE DRAFT: Pitch + Console */}
         {store.phase !== "IDLE" && store.phase !== "COMPLETE" && (
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_340px]">
-            {/* Left: Spin + Pool */}
-            <div className="flex flex-col gap-8">
-              {/* Spin area — show when READY or SPINNING */}
+          <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.5fr_1.8fr_320px] flex-1 min-h-0 pb-4">
+            {/* Left: Live Pitch Art */}
+            <div className="h-full overflow-hidden rounded-sm border-4 border-surface-border bg-accent-green shadow-sm">
+              <LivePitchArt roster={store.roster} />
+            </div>
+
+            {/* Middle: Spin & Pool */}
+            <div className="flex flex-col gap-6 h-full min-h-0 overflow-y-auto pr-2 custom-scrollbar">
+              {/* Spin area */}
               {(store.phase === "READY" || store.phase === "SPINNING") && (
-                <SpinWheel
-                  onSpinStart={handleSpinStart}
-                  onSpinComplete={handleSpinComplete}
-                  isSpinning={store.phase === "SPINNING"}
-                  disabled={store.phase !== "READY"}
-                  spinResult={spinMutation.data || null}
-                />
+                <div className="rounded-sm border-4 border-surface-border bg-surface p-6 flex flex-col items-center justify-center min-h-[400px]">
+                  <SpinWheel
+                    onSpinStart={handleSpinStart}
+                    onSpinComplete={handleSpinComplete}
+                    isSpinning={store.phase === "SPINNING"}
+                    disabled={store.phase !== "READY"}
+                    spinResult={spinMutation.data || null}
+                  />
+                </div>
               )}
 
-              {/* Player Pool — show when POOL */}
+              {/* Player Pool */}
               {store.phase === "POOL" && store.currentSpin && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.3 }}
+                  className="rounded-sm border-4 border-surface-border bg-surface p-6"
                 >
                   {/* Pool header */}
-                  <div className="mb-4 flex items-center justify-between">
+                  <div className="mb-6 flex flex-col xl:flex-row xl:items-center justify-between border-b-4 border-surface-border pb-4 gap-4">
                     <div>
-                      <h3 className="text-lg font-bold text-white">
+                      <h3 className="text-2xl font-heading font-bold text-white uppercase tracking-wider">
                         {store.currentSpin.franchise_name}
-                        <span className="ml-2 text-sm font-normal text-zinc-500">
-                          {store.currentSpin.year}
+                        <span className="ml-2 text-accent-gold">
+                          '{store.currentSpin.year.toString().slice(2)}
                         </span>
                       </h3>
-                      <p className="text-xs text-zinc-500">
-                        Select a player to draft
+                      <p className="text-sm text-text-secondary font-body mt-1">
+                        SELECT A PLAYER TO DRAFT
                       </p>
                     </div>
                     {store.selectedPlayer && (
@@ -235,31 +238,15 @@ export default function DraftPage() {
                         whileTap={{ scale: 0.95 }}
                         onClick={handleConfirmPick}
                         disabled={pickMutation.isPending}
-                        className="rounded-xl bg-gradient-to-r from-emerald-500 to-green-500 px-5 py-2.5 text-sm font-bold text-white shadow-[0_0_20px_rgba(16,185,129,0.2)] transition-all hover:shadow-[0_0_30px_rgba(16,185,129,0.3)] disabled:opacity-50"
+                        className="btn-primary"
                       >
-                        {pickMutation.isPending ? (
-                          <span className="flex items-center gap-2">
-                            <motion.span
-                              animate={{ rotate: 360 }}
-                              transition={{
-                                duration: 1,
-                                repeat: Infinity,
-                                ease: "linear",
-                              }}
-                            >
-                              ⏳
-                            </motion.span>
-                            Drafting…
-                          </span>
-                        ) : (
-                          `Draft ${store.selectedPlayer.name}`
-                        )}
+                        {pickMutation.isPending ? "DRAFTING..." : `DRAFT ${store.selectedPlayer.name.split(" ").pop()}`}
                       </motion.button>
                     )}
                   </div>
 
                   {/* Player grid */}
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <AnimatePresence>
                       {store.poolPlayers.map((player, idx) => (
                         <PlayerCard
@@ -280,9 +267,9 @@ export default function DraftPage() {
               )}
             </div>
 
-            {/* Right sidebar: Draft Board */}
-            <div className="lg:sticky lg:top-6 lg:self-start">
-              <div className="rounded-2xl border border-white/8 bg-white/[0.02] p-4 backdrop-blur-sm">
+            {/* Right: Draft Board */}
+            <div className="h-full min-h-0 overflow-y-auto pr-2 custom-scrollbar">
+              <div className="rounded-sm border-4 border-surface-border bg-surface-bright p-4">
                 <DraftBoard
                   roster={store.roster}
                   budgetRemaining={store.budgetRemaining}
@@ -300,28 +287,57 @@ export default function DraftPage() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ type: "spring", stiffness: 200, damping: 20 }}
-            className="flex flex-col items-center py-12"
+            className="flex-1 min-h-0 pb-4 grid grid-cols-1 gap-6 xl:grid-cols-[1.5fr_1fr]"
           >
-            <motion.div
-              className="mb-6 text-6xl"
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 0.6, repeat: 3 }}
-            >
-              🏆
-            </motion.div>
-            <h2 className="mb-2 text-3xl font-black text-amber-400">
-              Squad Complete!
-            </h2>
-            <p className="mb-8 text-sm text-zinc-400">
-              Your Dream XI is ready. Budget remaining:{" "}
-              <span className="font-bold text-amber-300">
-                {store.budgetRemaining} credits
-              </span>
-            </p>
+            {/* Left: Live Pitch Art */}
+            <div className="h-full overflow-hidden rounded-sm border-4 border-surface-border bg-accent-green shadow-sm">
+              <LivePitchArt roster={store.roster} />
+            </div>
 
-            {/* Final roster display */}
-            <div className="w-full max-w-lg">
-              <div className="rounded-2xl border border-white/8 bg-white/[0.02] p-4 backdrop-blur-sm">
+            {/* Right: Board & Console */}
+            <div className="flex flex-col gap-6 h-full overflow-y-auto custom-scrollbar pr-2 pb-4">
+              {/* Victory Console */}
+              <div className="border-4 border-surface-border bg-surface p-6 flex flex-col items-center">
+                <motion.div
+                  className="mb-4 text-6xl"
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 0.6, repeat: 3 }}
+                >
+                  🏆
+                </motion.div>
+                <h2 className="mb-2 text-4xl font-heading font-black text-accent-gold uppercase tracking-widest text-center">
+                  SQUAD COMPLETE!
+                </h2>
+                <p className="mb-6 text-lg font-body text-text-secondary uppercase text-center">
+                  YOUR DREAM XI IS READY.<br/>BUDGET REMAINING:{" "}
+                  <span className="font-black text-accent-gold">
+                    {store.budgetRemaining} CR
+                  </span>
+                </p>
+
+                <div className="flex gap-4 w-full">
+                  <motion.button
+                    onClick={() => router.push(`/league?session=${store.sessionId}`)}
+                    className="btn-primary text-xl flex-1 py-4"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    🏏 SIMULATE
+                  </motion.button>
+
+                  <motion.button
+                    onClick={() => store.reset()}
+                    className="btn-secondary text-xl flex-1 py-4"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    DRAFT AGAIN
+                  </motion.button>
+                </div>
+              </div>
+
+              {/* Final roster display */}
+              <div className="border-4 border-surface-border bg-background p-4 flex-1">
                 <DraftBoard
                   roster={store.roster}
                   budgetRemaining={store.budgetRemaining}
@@ -330,15 +346,6 @@ export default function DraftPage() {
                 />
               </div>
             </div>
-
-            <motion.button
-              onClick={() => store.reset()}
-              className="mt-8 rounded-xl border border-amber-500/30 bg-amber-500/10 px-6 py-3 text-sm font-bold text-amber-400 transition-all hover:bg-amber-500/20"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Draft Again
-            </motion.button>
           </motion.div>
         )}
       </div>
