@@ -62,3 +62,17 @@ class BowlingPressureModifier:
             new_probs[MatchOutcome.SIX] *= (1.0 - pressure * 0.5)
             return new_probs
         return probs
+
+class FreeHitModifier:
+    """
+    IPL Rule: On a no-ball, the next delivery is a 'free hit'.
+    The batter cannot be dismissed off a free hit (except run out).
+    Zeroes out the WICKET probability when state.free_hit_next is True.
+    """
+    def apply(self, state: MatchState, probs: np.ndarray) -> np.ndarray:
+        if state.free_hit_next:
+            new_probs = list(probs) if not isinstance(probs, list) else list(probs)
+            new_probs[MatchOutcome.WICKET] = 0.0
+            return new_probs
+        return probs
+

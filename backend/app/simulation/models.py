@@ -38,6 +38,7 @@ class MatchState:
     balls_since_boundary: int = 10
     consecutive_dots: int = 0
     last_event_was_wicket: bool = False
+    free_hit_next: bool = False
 
     @property
     def total_balls(self) -> int:
@@ -50,6 +51,7 @@ class InningsResult:
     overs_bowled: float
     extras: int
     delivery_log: List[Dict[str, Any]]
+    impact_player_used: bool = False
 
 @lru_cache(maxsize=1024)
 def synthesize_base_matchup(

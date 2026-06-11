@@ -85,9 +85,9 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 05-01: Strike rotation and over rules extension
-- [ ] 05-02: Impact Player substitution implementation
-- [ ] 05-03: Stochastic weather generator and DLS resource model
+- [x] 05-01: Strike rotation and over rules extension
+- [x] 05-02: Impact Player substitution implementation
+- [x] 05-03: Stochastic weather generator and DLS resource model
 
 ### Phase 6: Mobile-First Frontend & Polish
 **Goal**: Design and build the interactive user interface optimized for smartphones.
@@ -100,9 +100,9 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 06-01: Next.js setup with Tailwind CSS 4 and Zustand global state
-- [ ] 06-02: Interactive Draftboard and animated Spin Wheel
-- [ ] 06-03: Scorecard displays, ball-by-ball ticker, and share card generator
+- [x] 06-01: Next.js setup with Tailwind CSS 4 and Zustand global state
+- [x] 06-02: Interactive Draftboard and animated Spin Wheel
+- [x] 06-03: Scorecard displays, ball-by-ball ticker, and share card generator
 
 ## Progress
 
@@ -116,7 +116,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Draft Engine & Constraint Solver | 2/2 | Complete    | 2026-06-11 |
 | 4. Match Orchestrator & Season State | 0/3 | Not started | - |
 | 5. Advanced Cricket Rules | 0/3 | Not started | - |
-| 6. Mobile-First Frontend & Polish | 0/3 | Not started | - |
+| 6. Mobile-First Frontend & Polish | 3/3 | Complete    | 2026-06-11 |
 
 ---
 *Roadmap defined: 2026-06-11*

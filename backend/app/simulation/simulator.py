@@ -90,14 +90,17 @@ class InningsSimulator:
         self,
         batting_lineup: List[Any],
         bowling_lineup: List[Any],
-        target: Optional[int] = None
+        target: Optional[int] = None,
+        impact_player: Optional[Any] = None,
+        impact_trigger_over: int = 6,
     ) -> InningsResult:
         state = MatchState(target=target)
         
         if len(batting_lineup) < 2:
             raise ValueError("Batting lineup must contain at least 2 players")
 
-        # Track batting positions
+        # Track batting positions — work on a mutable copy so we can insert the impact player
+        batting_lineup = list(batting_lineup)
         striker_idx = 0
         non_striker_idx = 1
         next_batsman_idx = 2
@@ -109,12 +112,15 @@ class InningsSimulator:
         bowlers = [p for p in bowling_lineup if get_player_role(p) in {"BOWL", "ALLROUNDER"}]
         if not bowlers:
             bowlers = list(bowling_lineup)
+        else:
+            bowlers = list(bowlers)
             
         overs_bowled_tracker = {get_player_id(b): 0 for b in bowlers}
         last_bowler_id = None
         current_bowler = self._select_bowler(bowlers, overs_bowled_tracker, last_bowler_id)
         
         delivery_log = []
+        impact_used = False
         
         while state.overs_completed < 20 and state.wickets < 10:
             # Check target before delivery
@@ -135,8 +141,11 @@ class InningsSimulator:
                 if isinstance(probs, np.ndarray):
                     probs = probs.tolist()
             
-            # Normalize and clip final probabilities
-            probs = [max(1e-7, p) if idx != 5 else 0.0 for idx, p in enumerate(probs)]
+            # Normalize and clip final probabilities.
+            # Preserve indices that were explicitly set to 0.0 by modifiers
+            # (e.g., FreeHitModifier zeroes WICKET; index 5 has no MatchOutcome).
+            explicit_zeros = {idx for idx, p in enumerate(probs) if p == 0.0}
+            probs = [0.0 if idx in explicit_zeros else max(1e-7, p) for idx, p in enumerate(probs)]
             s = sum(probs)
             probs = [p / s for p in probs]
             
@@ -177,7 +186,10 @@ class InningsSimulator:
                     state.balls_since_boundary = 0
                 else:
                     state.balls_since_boundary += 1
-            
+
+            # Update free-hit flag: the NEXT delivery is a free hit iff this one was a no-ball
+            state.free_hit_next = (outcome == MatchOutcome.NO_BALL)
+
             # Update scores
             state.runs += runs_on_ball + extra_runs
             
@@ -185,7 +197,7 @@ class InningsSimulator:
             if is_legal_ball:
                 overs_bowled_tracker[get_player_id(current_bowler)] += 1
             
-            # Log event
+            # Log event (capture free_hit_next BEFORE it gets updated for next ball)
             delivery_log.append({
                 "over": state.overs_completed,
                 "ball": state.balls_completed + 1 if is_legal_ball else state.balls_completed,
@@ -193,7 +205,8 @@ class InningsSimulator:
                 "bowler": get_player_name(current_bowler),
                 "outcome": outcome.name,
                 "runs": runs_on_ball + extra_runs,
-                "cumulative_score": f"{state.runs}/{state.wickets}"
+                "cumulative_score": f"{state.runs}/{state.wickets}",
+                "was_free_hit": outcome == MatchOutcome.NO_BALL,  # This ball triggers free-hit next
             })
             
             # Check target immediately after score update
@@ -205,13 +218,36 @@ class InningsSimulator:
                         state.balls_completed = 0
                 break
 
+            # Impact Player substitution — triggered at fall of wicket after trigger over
+            if (
+                wicket_fell
+                and not impact_used
+                and impact_player is not None
+                and state.overs_completed >= impact_trigger_over
+            ):
+                ip_role = get_player_role(impact_player)
+                if ip_role in {"BAT", "WK", "ALLROUNDER"}:
+                    # Insert impact player as the next incoming batter
+                    batting_lineup.insert(next_batsman_idx, impact_player)
+                if ip_role in {"BOWL", "ALLROUNDER"}:
+                    # Add impact player to the bowling pool
+                    bowlers.append(impact_player)
+                    overs_bowled_tracker[get_player_id(impact_player)] = 0
+                delivery_log.append({
+                    "over": state.overs_completed,
+                    "ball": state.balls_completed,
+                    "event": "IMPACT_PLAYER",
+                    "player": get_player_name(impact_player),
+                })
+                impact_used = True
+
             # Update ball progression and strike rotation
             if is_legal_ball:
                 state.balls_completed += 1
                 
                 if wicket_fell:
                     state.balls_since_boundary = 10
-                    if state.wickets < 10:
+                    if state.wickets < 10 and next_batsman_idx < len(batting_lineup):
                         striker = batting_lineup[next_batsman_idx]
                         next_batsman_idx += 1
                     else:
@@ -237,19 +273,20 @@ class InningsSimulator:
                 # Non-legal ball, check if wicket fell (e.g. run out)
                 if wicket_fell:
                     state.balls_since_boundary = 10
-                    if state.wickets < 10:
+                    if state.wickets < 10 and next_batsman_idx < len(batting_lineup):
                         striker = batting_lineup[next_batsman_idx]
                         next_batsman_idx += 1
                     else:
                         break
                         
         total_overs = state.overs_completed + (state.balls_completed / 6.0)
-        extras_count = sum(1 for log in delivery_log if log["outcome"] in {"WIDE", "NO_BALL"})
+        extras_count = sum(1 for log in delivery_log if log.get("outcome") in {"WIDE", "NO_BALL"})
         
         return InningsResult(
             total_runs=state.runs,
             wickets=state.wickets,
             overs_bowled=total_overs,
             extras=extras_count,
-            delivery_log=delivery_log
+            delivery_log=delivery_log,
+            impact_player_used=impact_used,
         )
